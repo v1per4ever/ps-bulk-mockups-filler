@@ -1,0 +1,125 @@
+/* ps-utils.jsxinc — Photoshop утилиты для работы со смарт‑объектами */
+
+function findSmartObjectsByName(doc, name) {
+  var matches = [];
+  if (!doc || !name) return matches;
+  traverse(doc.layers, '');
+  function traverse(layerCollection, path) {
+    for (var i = 0; i < layerCollection.length; i++) {
+      var lyr = layerCollection[i];
+      var currentPath = path + '/' + lyr.name;
+      if (lyr.typename === 'LayerSet') {
+        traverse(lyr.layers, currentPath);
+      } else {
+        if (lyr.kind === LayerKind.SMARTOBJECT && lyr.name === name) {
+          matches.push(lyr);
+        }
+      }
+    }
+  }
+  return matches;
+}
+
+function replaceSmartObjectContent(soLayer, designFile, resizeMode, align, scale) {
+  if (!soLayer || !designFile) return false;
+
+  // Убедиться, что слой и его родители видимы, иначе activeLayer выбросит ошибку
+  makeLayerVisible(soLayer);
+
+  app.activeDocument.activeLayer = soLayer;
+  var soDoc = openSmartObject(soLayer);
+  if (!soDoc) return false;
+
+  // Поместить файл в документ смарт‑объекта
+  placeFile(designFile);
+  var placed = soDoc.activeLayer;
+
+  // Ресайз и позиционирование
+  transformToCanvas(soDoc, placed, resizeMode || 'fit', align || { x: 'center', y: 'middle' }, scale || 100);
+
+  // Сохранить и закрыть содержимое смарт‑объекта
+  soDoc.save();
+  soDoc.close(SaveOptions.SAVECHANGES);
+  return true;
+}
+
+function openSmartObject(soLayer) {
+  var idplacedLayerEditContents = stringIDToTypeID('placedLayerEditContents');
+  var desc = new ActionDescriptor();
+  executeAction(idplacedLayerEditContents, desc, DialogModes.NO);
+  return app.activeDocument;
+}
+
+function placeFile(file) {
+  var idPlc = charIDToTypeID('Plc ');
+  var desc = new ActionDescriptor();
+  desc.putPath(charIDToTypeID('null'), new File(file));
+  desc.putEnumerated(charIDToTypeID('FTcs'), charIDToTypeID('QCSt'), charIDToTypeID('Qcsa'));
+  var desc2 = new ActionDescriptor();
+  desc2.putUnitDouble(charIDToTypeID('Hrzn'), charIDToTypeID('#Prc'), 100.000000);
+  desc2.putUnitDouble(charIDToTypeID('Vrtc'), charIDToTypeID('#Prc'), 100.000000);
+  desc.putObject(charIDToTypeID('Ofst'), charIDToTypeID('Ofst'), desc2);
+  executeAction(idPlc, desc, DialogModes.NO);
+}
+
+function transformToCanvas(doc, layer, mode, align, customScale) {
+  var w = doc.width.as('px');
+  var h = doc.height.as('px');
+  var b = layer.bounds;
+  var lw = b[2].as('px') - b[0].as('px');
+  var lh = b[3].as('px') - b[1].as('px');
+  var scaleX = 100, scaleY = 100;
+
+  if (mode === 'custom') {
+    scaleX = scaleY = customScale || 100;
+  } else if (mode === 'fit') {
+    var s = Math.min(w / lw, h / lh) * 100;
+    scaleX = scaleY = s;
+  } else if (mode === 'fill') {
+    var s2 = Math.max(w / lw, h / lh) * 100;
+    scaleX = scaleY = s2;
+  } else if (mode === 'stretch') {
+    scaleX = (w / lw) * 100;
+    scaleY = (h / lh) * 100;
+  } else {
+    // none — оставляем как есть
+  }
+
+  layer.resize(scaleX, scaleY, AnchorPosition.MIDDLECENTER);
+
+  // Выравнивание
+  alignLayer(doc, layer, align && align.x || 'center', align && align.y || 'middle');
+}
+
+function alignLayer(doc, layer, horizontal, vertical) {
+  doc.activeLayer = layer;
+  // Выравнивание относительно всего холста: выделяем всё
+  doc.selection.selectAll();
+  if (horizontal === 'left') alignCommand('AdLf');
+  if (horizontal === 'center') alignCommand('AdCH');
+  if (horizontal === 'right') alignCommand('AdRg');
+  if (vertical === 'top') alignCommand('AdTp');
+  if (vertical === 'middle') alignCommand('AdCV');
+  if (vertical === 'bottom') alignCommand('AdBt');
+  doc.selection.deselect();
+
+  function alignCommand(alignmentCharId) {
+    var desc = new ActionDescriptor();
+    var ref = new ActionReference();
+    ref.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
+    desc.putReference(charIDToTypeID('null'), ref);
+    desc.putEnumerated(charIDToTypeID('Usng'), charIDToTypeID('ADSt'), charIDToTypeID(alignmentCharId));
+    executeAction(charIDToTypeID('Algn'), desc, DialogModes.NO);
+  }
+}
+
+function makeLayerVisible(layer) {
+  try {
+    layer.visible = true;
+    var current = layer.parent;
+    while (current && current.typename === 'LayerSet') {
+      current.visible = true;
+      current = current.parent;
+    }
+  } catch (e) {}
+}

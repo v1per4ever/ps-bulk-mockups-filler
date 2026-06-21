@@ -1,0 +1,78 @@
+/* fs-utils.jsxinc — файловые утилиты для ExtendScript */
+
+// Возвращает массив File с указанными расширениями (массив строк без точки), рекурсивно при необходимости
+function scanFiles(rootFolderPath, extensions, recursive) {
+  var result = [];
+  if (!rootFolderPath) return result;
+  var folder = new Folder(rootFolderPath);
+  if (!folder.exists) return result;
+  var pattern = /.+/; // получим всё и отфильтруем вручную
+  var items = folder.getFiles(pattern);
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i];
+    if (it instanceof Folder) {
+      if (recursive) {
+        result = result.concat(scanFiles(it.fsName, extensions, recursive));
+      }
+    } else if (it instanceof File) {
+      var ext = (it.name.split('.').pop() || '').toLowerCase();
+      if (!extensions || extensions.length === 0 || indexOfStr(extensions, ext) > -1) {
+        result.push(it);
+      }
+    }
+  }
+  return result;
+}
+
+function indexOfStr(arr, v) {
+  for (var i = 0; i < arr.length; i++) if (String(arr[i]).toLowerCase() === String(v).toLowerCase()) return i;
+  return -1;
+}
+
+// JSON read/write совместимые с ExtendScript (CS6+). Если нет JSON, используем eval/toSource
+function readJSON(filePath) {
+  var f = new File(filePath);
+  if (!f.exists) return null;
+  f.encoding = 'UTF8';
+  f.open('r');
+  var txt = f.read();
+  f.close();
+  if (this.JSON && JSON.parse) return JSON.parse(txt);
+  return eval('(' + txt + ')');
+}
+
+function writeJSON(filePath, obj) {
+  var f = new File(filePath);
+  if (!f.parent.exists) f.parent.create();
+  f.encoding = 'UTF8';
+  f.open('w');
+  var txt = (this.JSON && JSON.stringify) ? JSON.stringify(obj, null, 2) : obj.toSource();
+  f.write(txt);
+  f.close();
+  return true;
+}
+
+function joinPath() {
+  var parts = [];
+  for (var i = 0; i < arguments.length; i++) if (arguments[i]) parts.push(String(arguments[i]));
+  var path = parts.join('/');
+  path = path.replace(/\/+/g, '/').replace(/\/+/g, '/').replace(/\/\//g, '/');
+  return path;
+}
+
+function safeName(name) {
+  var s = String(name);
+  var out = '';
+  for (var i = 0; i < s.length; i++) {
+    var ch = s.charAt(i);
+    if (ch === '\\' || ch === '/' || ch === ':' || ch === '*' || ch === '?' || ch === '"' || ch === '<' || ch === '>' || ch === '|') {
+      out += '_';
+    } else {
+      out += ch;
+    }
+  }
+  return out;
+}
+
+
+
