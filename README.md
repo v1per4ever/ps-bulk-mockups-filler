@@ -1,31 +1,35 @@
-# Bulk Mockups Filler
+<div align="center">
+  <img src="banner.jpg" alt="Bulk Mockups Filler" width="100%">
+  
+  <h1>🖼️ ps-bulk-mockups-filler</h1>
+  <p><b>Автоматизация процесса создания мокапов в Photoshop с помощью скрипта для массового заполнения.</b></p>
+  
+  <p>
+    <a href="#описание">Описание</a> •
+    <a href="#возможности">Возможности</a> •
+    <a href="#использование">Использование</a>
+  </p>
+</div>
 
-An ExtendScript-based Photoshop plugin designed to automate the process of inserting multiple designs into smart object mockups.
+---
 
-## Features
-- **Batch Processing**: Insert multiple designs into multiple mockups automatically.
-- **Auto-Resizing & Alignment**: Fit, Fill, Stretch, or Custom resize designs to fit your smart objects perfectly, with alignment options.
-- **Flexible Exporting**: Export results directly to PSD, JPG, or WEBP.
-- **Custom Naming & Structure**: Organize outputs by file type or design name, and easily configure prefixes and suffixes.
-- **Multiple Smart Objects**: Apply designs to single or multiple smart objects within the same mockup.
+## 💡 Описание
+**Bulk Mockups Filler** — это плагин/скрипт (ExtendScript) для Adobe Photoshop, разработанный для автоматизации монотонного процесса вставки множества дизайнов в смарт-объекты мокапов. Забудьте о ручной работе: просто укажите папки с исходниками, и скрипт сделает все сам!
 
-## How to Use
-1. Open Adobe Photoshop.
-2. Go to `File > Scripts > Browse...`
-3. Select the `BulkMockupsFiller.jsx` file.
-4. In the UI:
-   - Provide the folder containing your Mockups (PSD/PSB).
-   - Provide the folder containing your Designs (PNG/JPG/PSD/etc).
-   - Choose an Output folder.
-   - Adjust the target layer name (default is `Design`) if your smart objects are named differently.
-   - Click **Run**.
+## 🚀 Возможности
+- 📦 **Пакетная обработка**: Автоматическая вставка папки с дизайнами в папку с мокапами.
+- 📐 **Авто-масштабирование и выравнивание**: Различные опции подгонки (Fit, Fill, Stretch, Custom) ваших дизайнов под размер смарт-объектов с возможностью настройки выравнивания.
+- 💾 **Гибкий экспорт**: Прямой экспорт результатов в форматы PSD, JPG или WEBP.
+- 📁 **Кастомный нейминг и структура**: Удобная организация выходных файлов по типам или именам дизайнов, настройка префиксов и суффиксов.
+- 🔄 **Множественные смарт-объекты**: Поддержка мокапов с несколькими смарт-объектами внутри одного файла.
 
-## Demonstration
-Check the `Demo/` folder in this repository:
-- `Demo/Mockups/` contains a sample mockup file.
-- `Demo/Designs/` contains sample design images.
-- Use the script with these folders to test the plugin.
-
-## Requirements
-- Adobe Photoshop CS6 or newer (CC recommended).
-- Designed for standard ExtendScript environments.
+## 💻 Использование
+1. Откройте Adobe Photoshop.
+2. Перейдите в меню `Файл > Сценарии > Обзор...` (`File > Scripts > Browse...`).
+3. Выберите файл `BulkMockupsFiller.jsx`.
+4. В появившемся UI окне:
+   - Укажите папку, содержащую ваши мокапы (PSD/PSB).
+   - Укажите папку с вашими дизайнами (PNG/JPG/PSD/и т.д.).
+   - Выберите папку для сохранения готовых файлов (Output).
+   - Настройте имя целевого слоя (по умолчанию `Design`), если ваши смарт-объекты называются иначе.
+   - Нажмите "Запустить" и наслаждайтесь магией!
